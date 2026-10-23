@@ -66,8 +66,56 @@ void dealloc(Node* head)
 //   Add any helper functions or
 //   function object struct declarations
 // -----------------------------------------------
+struct isOdd {
+  bool operator()(int v) {
+    return v % 2 != 0;
+  }
+}
 
+struct greaterThan {
+  int t;
+  greaterThan(int threshold) : t(threshold) {}
+  bool operator()(int v) {
+    return v > t;
+  }
+}
 
+struct dontRemove {
+  bool operator()(int) {
+    return false;
+  }
+}
+
+struct removeAll {
+  bool operator()(int) {
+    return true;
+  }
+}
+
+void testLLPivot(const char* filename, int pivot) {
+  Node* head = readList(filename);
+  Node* smaller = (Node*)0xBAD;
+  Node* larger = (Node*)0xBAD;
+
+  llpivot(head, smaller, larger, pivot);
+
+  cout << "llpivot (pivot = " << pivot << ")" << endl;
+  cout << "  head (should not be empty): "; print(head);
+  cout << "  smaller: "; print(smaller);
+  cout << "  larger: "; print(larger);
+
+  dealloc(smaller);
+  dealloc(larger);
+}
+
+template <typename Comp>
+void testFilter(const char* filename, Comp pred, const char* label)
+{
+    Node* head = readList(filename);
+    head = llfilter(head, pred);
+    cout << "llfilter (" << label << "): "; print(head);
+    dealloc(head);
+}
 
 
 
@@ -84,8 +132,20 @@ int main(int argc, char* argv[])
     Node* head = readList(argv[1]);
     cout << "Original list: ";
     print(head);
+    dealloc(head);
 
     // Test out your linked list code
+    cout << endl;
+    testLLPivot(argv[1], 5);
+    testLLPivot(argv[1], -10000000);
+    testLLPivot(argv[1], 10000000);
+
+    cout << endl;
+    testFilter(argv[1], isOdd(), "remove odds");
+    testFilter(argv[1], greaterThan(5), "remove all > 5");
+    testFilter(argv[1], dontRemove(), "don't remove anything");
+    testFilter(argv[1], removeAll(), "remove everything");
+    
 
 
 

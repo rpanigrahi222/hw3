@@ -2,6 +2,8 @@
 #define HEAP_H
 #include <functional>
 #include <stdexcept>
+#include <vector>
+#include <algorithm>
 
 template <typename T, typename PComparator = std::less<T> >
 class Heap
@@ -61,14 +63,40 @@ public:
 
 private:
   /// Add whatever helper functions and data members you need below
+  std::vector<T> data_;
+  int m_;
+  PComparator c_;
 
-
-
+  void trickleUp(size_t x);
+  void trickleDown(size_t x);
 
 };
 
 // Add implementation of member functions here
+template <typename T, typename PComparator>
+Heap<T,PComparator>::Heap(int m, PComparator c) : m_(m), c_(c) {}
 
+template <typename T, typename PComparator>
+Heap<T,PComparator>::~Heap() {}
+
+template <typename T, typename PComparator>
+bool Heap<T,PComparator>::empty() const
+{
+  return data_.empty();
+}
+
+template <typename T, typename PComparator>
+size_t Heap<T,PComparator>::size() const
+{
+  return data_.size();
+}
+
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::push(const T& item)
+{
+  data_.push_back(item);
+  trickleUp(data_.size() - 1);
+}
 
 // We will start top() for you to handle the case of 
 // calling top on an empty heap
@@ -81,13 +109,13 @@ T const & Heap<T,PComparator>::top() const
     // ================================
     // throw the appropriate exception
     // ================================
-
+    throw std::underflow_error("top() : heap empty");
 
   }
   // If we get here we know the heap has at least 1 item
   // Add code to return the top element
 
-
+  return data_[0];
 
 }
 
@@ -101,12 +129,54 @@ void Heap<T,PComparator>::pop()
     // ================================
     // throw the appropriate exception
     // ================================
-
+    throw std::underflow_error("pop() : heap empty");
 
   }
+  data_[0] = data_.back();
+  data_.pop_back();
+  if(!empty()) {
+    trickleDown(0);
+  }
 
+}
 
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::trickleUp(size_t x)
+{
+  while(x > 0) {
+    size_t parent = (x - 1) / m_;
+    if(c_(data_[x], data_[parent])) {
+      std::swap(data_[x], data_[parent]);
+      x = parent;
+    }
+    else {
+      break;
+    }
+  }
+}
 
+template <typename T, typename PComparator>
+void Heap<T,PComparator>::trickleDown(size_t x)
+{
+  while(true) {
+    size_t first = m_ * x + 1;          // first child
+    if(first >= data_.size()) break;    // leaf
+
+    size_t best = first;
+    for(int i = 1; i < m_; i++) {
+      size_t child = first + i;
+      if(child >= data_.size()) break;
+      if(c_(data_[child], data_[best])) best = child;
+    }
+
+    if(c_(data_[best], data_[x])) {
+      std::swap(data_[x], data_[best]);
+      x = best;
+    }
+    else {
+      break;
+    }
+  }
 }
 
 
